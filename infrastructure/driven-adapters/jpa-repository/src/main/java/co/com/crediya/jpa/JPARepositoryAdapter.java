@@ -2,9 +2,7 @@ package co.com.crediya.jpa;
 
 import co.com.crediya.jpa.helper.AdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public class JPARepositoryAdapter extends AdapterOperations<Object/* change for domain model */, Object/* change for adapter model */, String, JPARepository>
 // implements ModelRepository from domain
 {

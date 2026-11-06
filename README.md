@@ -45,3 +45,46 @@ Los entry points representan los puntos de entrada de la aplicación o el inicio
 Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”.
 
 **Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**
+
+## Historia 1: registrar usuarios
+
+El endpoint `POST /api/v1/usuarios` registra un usuario y responde `201 Created`. El cuerpo usa nombres de campos en `snake_case`:
+
+```json
+{
+  "nombre": "Ana",
+  "apellido": "Pérez",
+  "fecha_nacimiento": "1998-06-15",
+  "direccion": "Calle 1",
+  "telefono": "3001234567",
+  "correo_electronico": "ana@example.com",
+  "salario_base": 2500000
+}
+```
+
+`nombre`, `apellido`, `correo_electronico` y `salario_base` son obligatorios. Se valida el formato del correo, que no esté registrado y que el salario esté entre 0 y 15.000.000. Los errores de entrada responden `400 Bad Request`; un correo duplicado responde `409 Conflict`. La respuesta exitosa incluye `id_usuario` y los datos del usuario.
+
+El flujo mantiene la arquitectura existente: el modelo y el puerto están en `domain/model`, las reglas en `domain/usecase`, el mapeo JPA en `infrastructure/driven-adapters/jpa-repository` y el endpoint y sus errores en `infrastructure/entry-points/api-rest`. El servicio usa Spring MVC y JPA; no se migró a WebFlux/R2DBC.
+
+Pasos para seguir el flujo en el código:
+
+1. Define `User` y el contrato `UserRepository` en el dominio, sin dependencias de Spring o JPA.
+2. Implementa en `UserUseCase` las validaciones del correo, campos requeridos, rango salarial y duplicados.
+3. Implementa el puerto con `UsuarioEntity`, `UsuarioJpaRepository` y `UsuarioRepositoryAdapter`; la restricción única de correo protege también frente a registros concurrentes.
+4. Expón el caso de uso en `UsuarioController`, valida el DTO y centraliza las respuestas de error en `GlobalExceptionHandler`.
+5. Ejecuta las pruebas unitarias y prueba el endpoint con el ejemplo de arriba.
+
+La base H2 se guarda en archivo para conservar los registros entre reinicios. Por defecto, la ruta es relativa al directorio de ejecución (`./data/crediya`); se puede cambiar con `CREDIYA_DB_PATH`. En Docker se establece `/tmp/crediya`; para conservar los datos al reemplazar el contenedor, monta un volumen persistente en esa ruta.
+
+Para iniciar la aplicación desde la raíz del proyecto:
+
+```powershell
+.\gradlew.bat :app-service:bootRun
+```
+
+Para ejecutar las pruebas de los módulos:
+
+```powershell
+.\gradlew.bat :model:test :usecase:test :jpa-repository:test :api-rest:test :app-service:test `
+  -x :model:pitest -x :usecase:pitest -x :jpa-repository:pitest -x :api-rest:pitest -x :app-service:pitest
+```
