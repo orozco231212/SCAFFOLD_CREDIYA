@@ -2,6 +2,7 @@ package co.com.crediya.api;
 
 import co.com.crediya.api.dto.UsuarioRequestDto;
 import co.com.crediya.api.dto.UsuarioResponseDto;
+import co.com.crediya.api.mapper.UserApiMapper;
 import co.com.crediya.model.user.User;
 import co.com.crediya.usecase.user.UserUseCase;
 import jakarta.validation.Valid;
@@ -23,32 +24,20 @@ public class UsuarioController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UsuarioController.class);
 
     private final UserUseCase userUseCase;
+    private final UserApiMapper userApiMapper;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UsuarioResponseDto> registrar(@Valid @RequestBody UsuarioRequestDto request) {
         LOGGER.info("Iniciando registro de usuario");
 
-        User user = User.builder()
-                .nombre(request.nombre())
-                .apellido(request.apellido())
-                .fechaNacimiento(request.fechaNacimiento())
-                .direccion(request.direccion())
-                .telefono(request.telefono())
-                .email(request.correoElectronico())
-                .salarioBase(request.salarioBase())
-                .build();
+        // Convertimos el Request DTO a Modelo de Dominio usando el Mapper
+        User user = userApiMapper.toDomain(request);
 
+        // Ejecutamos el caso de uso
         User registeredUser = userUseCase.registerUser(user);
-        UsuarioResponseDto response = new UsuarioResponseDto(
-                registeredUser.getId(),
-                registeredUser.getNombre(),
-                registeredUser.getApellido(),
-                registeredUser.getFechaNacimiento(),
-                registeredUser.getDireccion(),
-                registeredUser.getTelefono(),
-                registeredUser.getEmail(),
-                registeredUser.getSalarioBase()
-        );
+
+        // Convertimos el Modelo de Dominio a Response DTO usando el Mapper
+        UsuarioResponseDto response = userApiMapper.toResponse(registeredUser);
 
         LOGGER.info("Usuario registrado correctamente, id={}", registeredUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
