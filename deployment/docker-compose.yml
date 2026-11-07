@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres_crediya:
+    image: postgres:15-alpine
+    container_name: crediya_db_container
+    environment:
+      POSTGRES_DB: crediya_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting Compose}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_crediya_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_crediya_data:
