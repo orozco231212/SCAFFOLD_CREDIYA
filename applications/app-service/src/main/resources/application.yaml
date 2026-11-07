@@ -5,19 +5,15 @@ spring:
     name: "crediya-autenticacion-ms"
   devtools:
     add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: "/h2"
-  profiles:
-    include: null
   datasource:
-    url: "jdbc:h2:file:${CREDIYA_DB_PATH:./data/crediya}"
-    username: "sa"
-    password: ""
-    driverClassName: "org.h2.Driver"
+    url: "jdbc:postgresql://localhost:5432/crediya_db"
+    username: "postgres"
+    password: "${POSTGRES_PASSWORD:}"
+    driverClassName: "org.postgresql.Driver"
   jpa:
-    databasePlatform: "org.hibernate.dialect.H2Dialect"
+    databasePlatform: "org.hibernate.dialect.PostgreSQLDialect"
+    hibernate:
+      ddl-auto: update
 management:
   endpoints:
     web:

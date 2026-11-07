@@ -74,11 +74,17 @@ Pasos para seguir el flujo en el código:
 4. Expón el caso de uso en `UsuarioController`, valida el DTO y centraliza las respuestas de error en `GlobalExceptionHandler`.
 5. Ejecuta las pruebas unitarias y prueba el endpoint con el ejemplo de arriba.
 
-La base H2 se guarda en archivo para conservar los registros entre reinicios. Por defecto, la ruta es relativa al directorio de ejecución (`./data/crediya`); se puede cambiar con `CREDIYA_DB_PATH`. En Docker se establece `/tmp/crediya`; para conservar los datos al reemplazar el contenedor, monta un volumen persistente en esa ruta.
-
-Para iniciar la aplicación desde la raíz del proyecto:
+La persistencia usa PostgreSQL. La aplicación se conecta por defecto a `jdbc:postgresql://localhost:5432/crediya_db` y obtiene la contraseña de la variable de entorno `POSTGRES_PASSWORD`; no se debe guardar la contraseña en el repositorio. Para iniciar la base con Docker Compose desde PowerShell:
 
 ```powershell
+$env:POSTGRES_PASSWORD = "<tu contraseña local>"
+docker compose -f deployment/docker-compose.yml up -d
+```
+
+Mantén `POSTGRES_PASSWORD` definida en la misma terminal al iniciar la aplicación:
+
+```powershell
+$env:POSTGRES_PASSWORD = "<la misma contraseña local>"
 .\gradlew.bat :app-service:bootRun
 ```
 
