@@ -28,6 +28,17 @@ public class UserUseCase {
         return userRepository.save(user.toBuilder().email(normalizedEmail).build());
     }
 
+    public User updateUser(User user) {
+        if (user.getId() == null) {
+            throw new UserValidationException("El ID del usuario es obligatorio para actualizar.");
+        }
+
+        validate(user);
+
+        String normalizedEmail = user.getEmail().trim().toLowerCase(Locale.ROOT);
+        return userRepository.save(user.toBuilder().email(normalizedEmail).build());
+    }
+
     private void validate(User user) {
         if (user == null
                 || isBlank(user.getNombre())
